@@ -1,0 +1,383 @@
+hostname -f
+/etc/hosts
+/etc/hostnames
+instalar slapd
+netstat
+puerto 389 proceso de slapd
+dpkg-reconfigure debconf (mas control de la instalacion)
+
+
+luego de instalar slapd
+/etc/ldap/slapd.d/cn = ci??ig/
+dentro de base datos hay una que es -1 esa no se toca
+la 0 es la base de datos de conf de ldap
+la 1 es para trabajar ldap
+
+/etc/ldap/schema/
+ver core.schema
+	attributetype (2.5.4.4) cada num tiene significado es una jerarquia
+	representa un sn o surname
+	EQUALITY puedo precalificar como quiero que operen
+
+
+Linea 382
+country
+top es raiz y este puede contener objetos es decir un contenedor
+un country herada de top
+STRUCTURAL representa un punto dentro del arbol
+MUST c  (por lo menos una propiedad de tipo c, representa en este caso el nombre del pais)
+MAY (puede llevar una descripcion)
+
+instalar ldap-utils
+
+Trabajar la 1
+mdb.diff
+olcDatabaseConfig
+olcSuffix mi raiz de la base
+olcAccess
+olcRootDN usuario con permisos para conectarse a la base de datos no sólo es admin si no que todo
+olcRootPW contra cifrada
+olcDbIndex indice hace busquedas más rápidas
+olcDbIndex objectclass eq (para ver si son iguales)
+
+
+nano rama.ldif
+	vamos a crear una rama en el arbol, un subdirectorio, una carpeta.
+
+	dn: c=Argentina dc=churritos dc=com (nombre distinguido)
+	dn: ou=usuarios,dc=churritos, dc=com
+	objectClass: organizationalUnit
+	objectClass: top
+	ou: usuarios
+
+comando ldappadd
+ldapadd -D "cn=admin,dc=churritos,dc=com" -W -h localhost -x (para autenticacion simple) -f rama.ldif
+
+instalar jxplorer (gráfico)
+	connect to DSA
+	Base DN: dc=churrito, dc=com
+	User DN: admin blabla
+
+click derecho usuarios NEW
+
+cn: Juan
+objectClass: inetOrgPerson
+objectClass: organizationalPerson mandatorio UID=jcpenya
+objectClass: person
+objectClass: top
+sn: Penya
+uid: jcpenya
+
+contra cifrado MD5
+
+ldapsearch -x -b "dc=churrito, dc=com" -D "cn=admin, dc=churrito, dc=com" -W -h localhost "(uid=jcpenya)"
+ldapsearch -x -b "dc=churrito, dc=com" -D "cn=admin, dc=churrito, dc=com" -W -h localhost "
+(&(objectClass=inetOrgPerson)(uid=jcpenya))"
+(&(objectClass=country)(uid=jcpenya))
+
+/usr/share/doc/slapd/README.Debian
+
+
+cambiarPassCnAdmin.ldif
+
+sudo slappasswd -h {MD5}
+
+dn: cn=config
+changetype: modify
+
+dn: olcDatabase={0}config,cn=config
+changetype: modify
+add: olcRootPW
+olcRootPW: {MD5}
+
+dn: olcDatabase={0}config,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {1}to * by dn="cn=admin,cn=config" write
+
+ldapadd -Y EXTERNAL -H ldapi:/// -f cambiarPassCnAdmin.ldif COMO ROOT
+Verificar
+nano /etc/ldap/slapd.d/cn=config
+ya tiene
+olcRootPW
+
+----------------------------------------------
+cn=admin,cn=config
+cn=admin,dc=www,dc=nachos,dc=com
+
+Base DN cn=config
+
+------------------------------------------------------------------------
+CORREOS ELECTRONICOS
+
+Envio
+SMTP simple mail transfer protocol
+federados autodescubrir que tiene que hacer
+Servidores hablen entre ellos
+
+1-Cliente utiliza un local MTA
+MTA app que habla SMTP
+
+2-El local llega a uno remoto
+3-Server pregunta si es duenio de ese dominio si no hay que averiguar quien es el servidor de correo de ese dominio
+Hay un MX mail exchange con peso relativo para distribucion
+Luego se contacta ese server encargado
+Se hace un saludo entre servers y se procede el intercambio de info
+Pregunta por el user a que se le envia el correo
+Si es el duenio recibe el correo
+Si no lo es lo redirige (proxy)
+RFC 822 - Define standar o formato del sobre del correo, define headers, posicion y significado.
+SMTP SOLO MUEVE TEXTO
+Genera cadena de texto base 64 y en el otro lado se regenera
+MYME cabeceras de multiextension, jpeg, audio, etc
+Delivery Agent, puede ser local en la misma pc, puede ser un pipe, se puede entragar a otro delivery agent ejem un antivirus, un antispam, etc hasta que llega al final
+
+EXIM formato que elimino POSTFIX
+POSTFIX
+LOTUS
+
+Puerto 25
+investigar sobre master.cf define tuberias
+/etc/mailname
+telnet localhost 25
+sasl si se autentica en ssl o tls si lo dejara enviar correo
+hash:/etc/aliases
+ldap:/
+dpki firmas de veracidad
+
+groupadd -g 2017 inmortal
+	el cartero para evitar un shell para cada user que crea un correo
+mkdir /home/inmortal todos los correos se almacenan en el disco duro
+useradd -d /home/inmortal/ -g 2017 -u 2017 inmortal
+
+
+En MAIN.CF
+myhostname = localhost
+virtual_mailbox_domains = /etc/postfix/vhosts.txt
+virtual_mailbox_base = /home/inmortal/
+virtual_mailbox_maps = hash:/etc/postfix/vmaps.txt
+virtual_uid_maps = static:2017
+virtual_gid_maps = static:2017
+
+nano /etc/postfix/vhosts.txt
+	churritos.com
+nano /etc/postfix/vmaps.txt
+	jorge.gonzalez@nachos.com nachos/jorge.gonzalez/ (Usamos mailbir)
+
+FORMATO MBOX, MAILBIR
+CONVERTIR A UN HASH
+postmap /etc/postfix/vmaps.txt
+
+
+CREAR 3 CARPETAS
+mkdir -p /home/inmortal/nachos/jorge.gonzalez
+Ojo carpeta
+root@deku:/home/inmortal/nachos/jorge.gonzalez# mkdir new cur tmp
+									chown -R inmortal:inmortal /home/inmortal
+postfix reload
+postmap -q jorge.gonzalez@nachos.com hash:/etc/postfix/vmaps.txt
+tail -f /var/log/mail.log
+
+NOTA EN MAIN.CF ARREGLAR MYHOSTNAME = , EN VEZ DE NACHOS.COM QUE DIGA WWW.NACHOS.COM PUEDE QUE HAYA UNA COME DEMAS TAMBIEN
+telnet localhost 25
+helo mail.ues.edu.sv
+mail from:<eh13002@ues.edu.sv>
+rcpt to:<jorge.gonzalez@nachos.com>
+
+DATA
+
+ENTER
+
+-----------------------------------------------------
+apt-get install courier-authlib-ldap
+/usr/share/doc/courier-authlib-ldap/authldap.schema
+cp /usr/share/doc/courier-authlib-ldap/authldap.schema /etc/ldap/schema/
+nano agregarCourierAuthlibLdap.ldif
+include /etc/ldap/schema/corba.schema
+include /etc/ldap/schema/core.schema
+include /etc/ldap/schema/cosine.schema
+include /etc/ldap/schema/duaconf.schema
+include /etc/ldap/schema/dyngroup.schema
+include /etc/ldap/schema/inetorgperson.schema
+include /etc/ldap/schema/java.schema
+include /etc/ldap/schema/nis.schema
+include /etc/ldap/schema/openldap.schema
+include /etc/ldap/schema/ppolicy.schema
+include /etc/ldap/schema/collective.schema
+include /etc/ldap/schema/pmi.schema
+include /etc/ldap/schema/authldap.schema
+mkdir /tmp/ldif
+slaptest -f agregaCouui -F /tmp/ldif
+grep -d recurse -i "mailhost"
+descomento de authldap.schema el attributetype mailhost
+ls /tmp/ldif/cn\=config/cn\=schema
+nano /tmp/ldif/cn\=config/cn\=schema/cn\=\{12\}authldap.ldif
+	Quitar las dos primeras lineas que son de suma de comprobacion
+		dn: cn=authldap, cn=schema, cn=config
+		objectClass: olcSchemaConfig
+		cn: authldap
+		mato desde estrcuturalobject hasta el fin
+ldapadd -x -D "cn=admin, cn=config" -W -f /tmp/ldif/cn\=config/cn\=schema/cn\=\{12\}authldap.ldif
+Verifico en jx conectandome
+jxexplorer a la 0
+RDN uid=jorge.gonzalez	couriermailaccount, inet orga y me faltan objectclases
+	couriermailaccount
+		me interesa
+			mailbox
+-				nachos/jorge.bl
+baba/ NO OLVIDAR FLECA FINAL POR MAILBIR
+
+			userPassword
+
+modifico
+virtual_mailbox_maps = ldap:/etc/postfix/ldap-vmaps.txt
+
+
+/etc/postfix/ldap-vmaps.txt
+
+server_host = 127.0.0.1
+search_base = ou=empleados, ou=usuarios, dc=www,dc=nachos, dc=com
+bind = no
+timeout = 2
+queryfilter = mail=%u@nachos.com
+result_attributte = mailbox
+
+paro el servicio de ldap y lo inicio asi
+sldap -d -1
+
+apt-get install postfix-ldap
+postmap -q jorge.gonzalez@nachos.com ldap:/etc/postfix/ldap-vmaps.txt
+------------------------------------------------------------------------------------------------------------------------
+SIGUIENTE CLASE
+
+agr
+ldap-vamps
+bind=yes
+bind_dn = cn=espia, dc=churrito, dc=com
+bind_pw = espia
+espia tiene permisos de lectura
+
+Protocolo para obtener correo electronico
+Configurar IMAP
+sudo apt-get install dovecot-imapd dovecot-ldap
+netstat puerto 143 por defecto imap
+para imap seguro 193
+ls /etc/dovecot/conf.d
+dovecot-ldap.conf.ext
+	hosts = 127.0.0.1
+	dn = user para conectarse para bbuscar cn=espia dc = churrito
+	dnpass= espia
+	auth_bind = yes
+	base = ou=empleados ou=churritos
+	deref = never
+	scope = subtree
+	user_attrs = mailbox=mail=maildir:/home/inmortal/%$, homeDirectory=home
+	user_filter = (&(objectClass=CourierMailAccount)(mail=%u))
+	pass_attrs = mail=user, userPassword=password
+	pass_filter = (&(objectClass=CourierMailAccount)(mail=%u))
+ls /etc/dovecot/conf.d numero de conf le da peso relativo para cargar
+auth-ldap/conf.ext
+	user-db {
+
+		default_fields = uid=inmortal gid=inmortal
+	}
+
+10-auth.conf
+	auth_username_chars = lo deja vaciooo
+	al final esta
+	include !auth-system.conf.ext comentarlo y solo dejarlo ldap
+
+reconmen
+consola ldap en modo debug, monitorear corero
+
+parar sladp y hacerlo en modo debug, reiniciar dovecot,  lo de dovecot tambien cae en mail.log
+
+imap
+telnet localhost 143
+. (cualquier caracter) login jorge.gonzalez@churrito.com magico
+. logout
+
+
+
+---------------------------------------------------
+SIGUIENTE CLASE
+nano /etc/dovecot/conf.d/10-master.conf
+	postfix smtp-auth
+	descomento unix_listener var spool {
+		mode = 0666
+		user = inmortal
+		group = inmortal
+	}
+
+nano /etc/dovecot/conf.d/15-ldap.conf
+	lda_mail_box_autocreate = yes
+	lda_mail_box_autosubscribe = yes
+
+reinicio dovecot
+ls /var/spool/postfix/private/auth -lh
+nano /etc/postfix/master.cf
+	maildrop unix - n n -
+		flags
+
+	lo copio y lo cambio a
+	dovecot unix - n
+		flags			aca solo cambia user=inmortal:inmortal argv=/usr/lib/dovecot/deliver -f ${sender} (sepa quien lo 			envio) -d
+
+nano /etc postfix main.cf
+agrego para entregar mediante dovecot
+virtual_transport = dovecot
+reincio postfix
+enviar correo
+Consolas:
+logcorreo
+ldap
+conex de smtp
+dovecot
+
+Agregamos otro user en jxplorer
+guillermo.rivera con lo mismo de jorge
+cn Guillermo Memo
+sn Rivera
+uid guillermo.rivera
+homeDirectory /home/inmortal/nachos/guillermo.rive
+mail guillermo.rivera@nachos.com
+mailbox nachos/guillermo.rivera/
+password 1234
+
+telnet localhost 25
+
+helo
+from jorge
+recived guillermo
+
+ls /home/inmortal/nachos/guillermo
+
+-------------------------------------------------------------------------------------------------
+PROTOCOLOS DE TRIPLE AAA
+AUTENTICACION AUTORIZACION ACCOUNTING
+
+Accounting como y cuanto utilizo un recurso
+tacas-tcp orientado a conexion radius-udp
+sudo apt-get install freradius
+puerto 1812 autentica y auto
+	1813 accouting
+	1820 consola
+
+nano /etc/freeradius/radiusd.conf
+
+
+
+nano /etc/freeradius/sites-enabled/
+default unico expuesto
+inner tunnel para loops de autenticacion
+server default
+authorize
+naono /etc/freeradius/users
+
+jorge.gonzalez contra
+
+nano /etc/freeradius/clients.conf  quien le puede hacer preguntas al radius
+	secret =  se le da al query del radius para comprobar que soy localhost
+reinicio freeradius
+radtest para texto plano
+radtest -x jorge.gonzalez 1234 localhost 123 testing123

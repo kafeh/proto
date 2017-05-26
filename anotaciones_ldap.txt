@@ -42,7 +42,7 @@ olcDbIndex objectclass eq (para ver si son iguales)
 
 
 nano rama.ldif (vamos a crear una rama en el arbol, un subdirectorio, una carpeta)
-	dn: ou=usuarios,dc=churritos, dc=com
+	dn: ou=usuarios,dc=nachos,dc=com
 	objectClass: organizationalUnit
 	objectClass: top
 	ou: usuarios
@@ -244,8 +244,7 @@ postmap -q jorge.gonzalez@nachos.com ldap:/etc/postfix/ldap-vmaps.txt
 ------------------------------------------------------------------------------------------------------------------------
 SIGUIENTE CLASE
 
-agr
-ldap-vamps
+agregar en /etc/postfix/ldap-vmaps.txt
 bind=yes
 bind_dn = cn=espia, dc=churrito, dc=com
 bind_pw = espia
@@ -257,38 +256,34 @@ sudo apt-get install dovecot-imapd dovecot-ldap
 netstat puerto 143 por defecto imap
 para imap seguro 193
 ls /etc/dovecot/conf.d
-dovecot-ldap.conf.ext
-	hosts = 127.0.0.1
-	dn = user para conectarse para bbuscar cn=espia dc = churrito
+nano /etc/dovecot/dovecot-ldap.conf.ext 
+	hosts = localhost
+	dn = cn=espia,dc=nachos,dc=com
 	dnpass= espia
 	auth_bind = yes
 	base = ou=empleados,ou=usuarios,dc=nachos,dc=com
-	deref = never
+	deref = always
 	scope = subtree
-	user_attrs = mailbox=mail=maildir:/home/inmortal/%$, homeDirectory=home
+	user_attrs = mailbox=mail=maildir:/home/inmortal/%$,homeDirectory=home
 	user_filter = (&(objectClass=CourierMailAccount)(mail=%u))
-	pass_attrs = mail=user, userPassword=password
+	pass_attrs = mail=user,userPassword=password
 	pass_filter = (&(objectClass=CourierMailAccount)(mail=%u))
-ls /etc/dovecot/conf.d numero de conf le da peso relativo para cargar
-auth-ldap/conf.ext
+ls /etc/dovecot/conf.d/ numero de conf le da peso relativo para cargar
+nano /etc/dovecot/conf.d/auth-ldap.conf.ext 
 	user-db {
 
 		default_fields = uid=inmortal gid=inmortal
 	}
-
-10-auth.conf
+nano /etc/dovecot/conf.d/10-auth.conf
 	auth_username_chars = lo deja vaciooo
 	al final esta
 	include !auth-system.conf.ext comentarlo y solo dejarlo ldap
 
-reconmen
-consola ldap en modo debug, monitorear corero
-
-parar sladp y hacerlo en modo debug, reiniciar dovecot,  lo de dovecot tambien cae en mail.log
+Parar sladp y hacerlo en modo debug, reiniciar dovecot,  lo de dovecot tambien cae en mail.log
 
 imap
 telnet localhost 143
-. (cualquier caracter) login jorge.gonzalez@churrito.com magico
+. login jorge.gonzalez@nachos.com 1234 (cualquier caracter puede ser no necesariamente punto)
 . logout
 
 

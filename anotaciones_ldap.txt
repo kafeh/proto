@@ -281,6 +281,11 @@ nano /etc/dovecot/conf.d/10-auth.conf
 
 Parar sladp y hacerlo en modo debug, reiniciar dovecot,  lo de dovecot tambien cae en mail.log
 
+Permisos para espia
+olcAccess: {1}
+olcAccess: {2}
+
+
 imap
 telnet localhost 143
 . login jorge.gonzalez@nachos.com 1234 (cualquier caracter puede ser no necesariamente punto)

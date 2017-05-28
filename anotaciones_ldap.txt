@@ -42,12 +42,17 @@ olcDbIndex objectclass eq (para ver si son iguales)
 
 
 nano rama.ldif (vamos a crear una rama en el arbol, un subdirectorio, una carpeta)
-	dn: ou=usuarios,dc=nachos,dc=com
-	objectClass: organizationalUnit
-	objectClass: top
-	ou: usuarios
+dn: ou=usuarios,dc=nachos,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: usuarios
 
-ldapadd -D "cn=admin,dc=churritos,dc=com" -W -h localhost -x (para autenticacion simple) -f rama.ldif
+dn: ou=empleados,ou=usuarios,dc=nachos,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: empleados
+
+ldapadd -D "cn=admin,dc=nachos,dc=com" -W -h localhost -x (para autenticacion simple) -f rama.ldif
 instalar jxplorer (gráfico)
 	connect to DSA
 	Base DN: dc=churrito, dc=com

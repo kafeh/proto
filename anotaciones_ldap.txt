@@ -308,18 +308,20 @@ nano /etc/dovecot/conf.d/15-ldap.conf
 
 reinicio dovecot
 ls /var/spool/postfix/private/auth -lh
+
 nano /etc/postfix/master.cf
 	maildrop unix - n n -
 		flags
 
 	lo copio y lo cambio a
 	dovecot unix - n
-		flags			aca solo cambia user=inmortal:inmortal argv=/usr/lib/dovecot/deliver -f ${sender} (sepa quien lo 			envio) -d
+		flags			aca solo cambia user=inmortal:inmortal argv=/usr/lib/dovecot/deliver -f ${sender} (sepa quien lo envio) -d ${recipient}
 
-nano /etc postfix main.cf
-agrego para entregar mediante dovecot
+nano /etc/postfix/main.cf (para entregar mediante dovecot)
 virtual_transport = dovecot
+
 reincio postfix
+
 enviar correo
 Consolas:
 logcorreo
@@ -332,16 +334,17 @@ guillermo.rivera con lo mismo de jorge
 cn Guillermo Memo
 sn Rivera
 uid guillermo.rivera
-homeDirectory /home/inmortal/nachos/guillermo.rive
+homeDirectory /home/inmortal/nachos/guillermo.rivera/
 mail guillermo.rivera@nachos.com
 mailbox nachos/guillermo.rivera/
 password 1234
 
 telnet localhost 25
 
-helo
-from jorge
-recived guillermo
+helo localhost
+mail from:<jorge.gonzalez@nachos.com>
+rcpt to:<guillermo.rivera@nachos.com>
+DATA
 
 ls /home/inmortal/nachos/guillermo
 
@@ -351,21 +354,19 @@ AUTENTICACION AUTORIZACION ACCOUNTING
 
 Accounting como y cuanto utilizo un recurso
 tacas-tcp orientado a conexion radius-udp
-sudo apt-get install freradius
+sudo apt-get install freeradius
 puerto 1812 autentica y auto
 	1813 accouting
 	1820 consola
 
 nano /etc/freeradius/radiusd.conf
-
-
-
 nano /etc/freeradius/sites-enabled/
+
 default unico expuesto
-inner tunnel para loops de autenticacion
+inner tunnel para loops de autenticacion, cuando alguien llega autenticarse por ssl hace un pipe y se conecta a el mismo por otro puerto y hay intercambio de certficados por un canal seguro.
 server default
 authorize
-naono /etc/freeradius/users
+nano /etc/freeradius/users
 
 jorge.gonzalez contra
 

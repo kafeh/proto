@@ -42,12 +42,17 @@ olcDbIndex objectclass eq (para ver si son iguales)
 
 
 nano rama.ldif (vamos a crear una rama en el arbol, un subdirectorio, una carpeta)
-	dn: ou=usuarios,dc=nachos,dc=com
-	objectClass: organizationalUnit
-	objectClass: top
-	ou: usuarios
+dn: ou=usuarios,dc=nachos,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: usuarios
 
-ldapadd -D "cn=admin,dc=churritos,dc=com" -W -h localhost -x (para autenticacion simple) -f rama.ldif
+dn: ou=empleados,ou=usuarios,dc=nachos,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: empleados
+
+ldapadd -D "cn=admin,dc=nachos,dc=com" -W -h localhost -x (para autenticacion simple) -f rama.ldif
 instalar jxplorer (gráfico)
 	connect to DSA
 	Base DN: dc=churrito, dc=com
@@ -375,3 +380,55 @@ nano /etc/freeradius/clients.conf  quien le puede hacer preguntas al radius
 reinicio freeradius
 radtest para texto plano
 radtest -x jorge.gonzalez 1234 localhost 123 testing123
+
+---------------------------------------------------------------------------------------------------------
+servidor torre ocupa mas espacio
+servidor rack
+
+
+postgresql la consulta se pega a una cpu no se rompe
+base de datos diferentes para resposteria y otra para datos en caliente
+b-trees tipos de almacenamiento de indices, balancean particiones, crecen de manera logaritmica
+postgres utiliza b-trees para indexar
+Mt/s mover dato puro a registro de cpu y viceversa
+Memorias pueden hacer mirror entre ellas
+Server buscar que sea en caliente
+Por recomendacion que quepa la consulta mas comun en memoria por que si no va a particionar o toca swap y eso no 
+pgbuffercache trata de mantener memoria cache, los datos mas comunes, se puede hacer select para ver lo que esta en memoria
+smartmontools
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
